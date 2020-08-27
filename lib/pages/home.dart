@@ -17,17 +17,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State {
   double currentVolume = 0.0;
   SharedPreferences prefs;
+  TextEditingController ipController = new TextEditingController();
 
  loadData() async {
    prefs = await SharedPreferences.getInstance();
    currentVolume = prefs.get('currentVolume') ?? 0.0;
+   ipController.text = prefs.get('ip') ?? "";
  }
 
   @override
   Widget build(BuildContext context) {
     loadData();
+
     var command = new Command();
     var robotText = TextEditingController();
+
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(title: Text('Главная')),
@@ -40,6 +44,22 @@ class _HomePageState extends State {
             ),
             child: Column(
               children: <Widget>[
+                TextFormField(
+                  controller: ipController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your ip:port PC',
+                  ),
+
+                  onChanged: (text) {
+                    prefs.setString('ip', text);
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter IP';
+                    }
+                    return null;
+                  },
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   mainAxisSize: MainAxisSize.max,
@@ -55,7 +75,7 @@ class _HomePageState extends State {
                         },
                         onChangeEnd: (newValue) {
                           double resultValue = (65535/100)*newValue;
-                          command.run('setsysvolume ${resultValue}');
+                          command.run(ipController.text,'setsysvolume ${resultValue}');
                         },
                         min: 0,
                         max: 100,
@@ -79,7 +99,7 @@ class _HomePageState extends State {
                         textColor: Colors.white,
                         onPressed: () {
                           print('monitor off');
-                          command.run('monitor off');
+                          command.run(ipController.text,'monitor off');
                         },
                         child: Column(
                           children: <Widget>[
@@ -95,7 +115,7 @@ class _HomePageState extends State {
                         color: Colors.greenAccent,
                         textColor: Colors.white,
                         onPressed: () {
-                          command.run('exitwin reboot');
+                          command.run(ipController.text,'exitwin reboot');
                         },
                         child: Column(
                           children: <Widget>[
@@ -111,7 +131,7 @@ class _HomePageState extends State {
                         color: Colors.redAccent,
                         textColor: Colors.white,
                         onPressed: () {
-                          command.run('exitwin poweroff');
+                          command.run(ipController.text,'exitwin poweroff');
                         },
                         child: Column(
                           children: <Widget>[
@@ -138,7 +158,7 @@ class _HomePageState extends State {
                       onPressed: () async {
                         ClipboardData data = await Clipboard.getData('text/plain');
                         print('clipboard set '+ data.text);
-                        command.run('clipboard set "'+ data.text +'"');
+                        command.run(ipController.text,'clipboard set "'+ data.text +'"');
                       },
                       child: Column(
                         children: <Widget>[
@@ -154,7 +174,7 @@ class _HomePageState extends State {
                       color: Colors.black,
                       textColor: Colors.white,
                       onPressed: () {
-                        command.run('standby');
+                        command.run(ipController.text,'standby');
                       },
                       child: Column(
                         children: <Widget>[
@@ -185,7 +205,7 @@ class _HomePageState extends State {
                                   padding: const EdgeInsets.all(20.0),
                                   child: Text('Отправить'),
                                   onPressed: () {
-                                    command.run('speak text "' + robotText.text + '"');
+                                    command.run(ipController.text,'speak text "' + robotText.text + '"');
                                   },
                                 )
                               ],
